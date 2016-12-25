@@ -6,7 +6,7 @@ colors.setTheme({
   input: 'grey',
   verbose: 'cyan',
   prompt: 'grey',
-  info: 'blue',
+  info: 'white',
   data: 'grey',
   help: 'cyan',
   warn: 'yellow',
@@ -52,7 +52,7 @@ function date(){
         var sec = date.getSeconds();
     }    
     
-    var str = "["+date.getFullYear() + "-" + maand + "-" + dag + " " +  uur + ":" + minut + ":" + sec+"] [INFO] ";
+    var str = "["+date.getFullYear() + "-" + maand + "-" + dag + " " +  uur + ":" + minut + ":" + sec+"]";
     return str;   
 }
 

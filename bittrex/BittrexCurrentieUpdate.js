@@ -1,4 +1,5 @@
 //load modules
+var async = require('async');
 var request = require('request');
 var fs = require('fs');
 var mysql = require('mysql');
@@ -27,68 +28,86 @@ var options = {
  
 //callback
 function callback(error, response, body) {
-    if (error) {
-        console.error(ConsoleColor.error()+error);
-    } else {
-        var marktData = JSON.parse(body).result;
+    if (!error && response.statusCode == 200) {
         
-        //connectie met mysql
-        MYSQLConnection.connect(function(err){
-            if(err){
-                console.error(ConsoleColor.error()+err);
-            } else {
-                console.log(ConsoleColor.log()+"Connectie met mysql.");
-            }
-        });        
-        
-        //for loop
-        for (i = 0; i < marktData.length; i++) {
-            
-            //varaialbe
-            var coinTags = marktData[i].Currency;
-            console.log(coinTags);
-            
-            /*
-            //quert data
-            //SELECT COUNT(*) AS total FROM
-            MYSQLConnection.query("SELECT COUNT(cointag) AS total FROM `bigCryptoData`.`coinnamen` WHERE cointag='"+coinTags+"'", function (err, result) {
-                if (err) {
-                    console.error(ConsoleColor.error()+"Probleem bij opvragen coin tag uit het database.");
-                } else {
-                    console.log(ConsoleColor.log()+"Er is dat uit het database opgevraagd");
-                    console.log(coinTags);
-                    //switch
-                    switch(result[0].total){
-                        case 1:
-                            console.log(result[0].total);
-
-                            //update data
-                            console.log("UPDATE `coinnamen` SET `bittrex`='true' WHERE `cointag`='"+coinTags+"'");
-                            MYSQLConnection.query("UPDATE `bigCryptoData`.`coinnamen` SET `bittrex`='true' WHERE `coinID`="+coinTags, function (err, result) {
-                                if (err) {
-                                    console.error(ConsoleColor.error()+"Bij coinnamen table kan kan de coin status niet worden geupdate.");
-                                } else {
-                                    console.log(ConsoleColor.log()+"Er is data in het database gezet.");
-                                }
-                            });
-                            
-                            break
-                        default: 
-                        break
+        //async series
+        async.series([
+            function(callback) {
+                
+                //connectie maken met mysql
+                MYSQLConnection.connect(function(err){
+                    if(err){
+                        console.error(ConsoleColor.error()+err);
+                    } else {
+                        console.log(ConsoleColor.log()+"Connectie met mysql.");
                     }
-                }
-            })*/
-        }
+                });
+                
+                callback();
+            },
+            function(callback) {
+                var marktData = JSON.parse(body).result;
+                
+                var i = 0;
+                while (marktData[i]) {
+                    
+                    //currency
+                    var Currency = marktData[i].Currency;
+                    var query = "SELECT COUNT(cointag) AS total FROM `bigCryptoData`.`coinnamen` WHERE cointag='"+Currency+"'";
+                    console.log("SELECT COUNT(cointag) AS total FROM `bigCryptoData`.`coinnamen` WHERE cointag='"+Currency+"'");
+                    var updateuery = "UPDATE `bigCryptoData`.`coinnamen` SET `bittrex`='true' WHERE `cointag`='"+Currency+"'";
+                    console.log(updateuery);
+                    //request data van mysql
+                    MYSQLConnection.query(query, function (err, result) {
+                        if (err) {
+                            console.error(ConsoleColor.error()+"Probleem bij opvragen coin tag uit het database.");
+                        } else {
+                            console.log(result[0].total);
+                            //run switch
+                            switch(result[0].total){
+                                case 1:
+                                    //var updateuery = "UPDATE `bigCryptoData`.`coinnamen` SET `bittrex`='true' WHERE `cointag`='"+Currency+"'";
+                                    //console.log(updateuery);
+                                    MYSQLConnection.query(updateuery, function (err, result) {
+                                        if (err) {
+                                            console.error(ConsoleColor.error()+"Bij coinnamen table kan kan de coin status niet worden geupdate.");
+                                        } else {
+                                            console.log(ConsoleColor.log()+"Er is data in het database gezet.");
+                                        }
+                                    });
+                                    
+                                    break
+                                default: 
+                                break          
+                            }
+                        }
+                    });
+                    
+                    //count +1
+                    i++;
+                };
+                
+                //callback();
+            },
+            function(callback) {
+                MYSQLDISCONNECT();
+            }
+        ]);
         
-        //close mysql connecion
-        MYSQLConnection.end(function(err){
-            if(err){
-                console.error(ConsoleColor.error()+"Kan mysql connentie niet opsluiten..");
-            } else {
-                console.log(ConsoleColor.log()+"Mysql connectie is afgesloten.");
-            };
-        });
+        
+        //connectie met mysql sluiten
+        //MYSQLDISCONNECT();
+        //MYSQLDISCONNECT
+        function MYSQLDISCONNECT (){
+            MYSQLConnection.end(function(err){
+                if(err){
+                    console.error(ConsoleColor.error()+"Kan mysql connentie niet opsluiten..");
+                } else {
+                    console.log(ConsoleColor.log()+"Mysql connectie is afgesloten.");
+                };
+            });
+        };
     }
 }
- 
 request(options, callback);
+//UPDATE  bigcryptodata.coinnamen SET bittrex='true' WHERE cointag='LTC';
