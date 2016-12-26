@@ -51,35 +51,16 @@ function callback(error, response, body) {
                 var i = 0;
                 while (marktData[i]) {
                     
-                    //currency
                     var Currency = marktData[i].Currency;
-                    var query = "SELECT COUNT(cointag) AS total FROM `bigCryptoData`.`coinnamen` WHERE cointag='"+Currency+"'";
-                    console.log("SELECT COUNT(cointag) AS total FROM `bigCryptoData`.`coinnamen` WHERE cointag='"+Currency+"'");
-                    var updateuery = "UPDATE `bigCryptoData`.`coinnamen` SET `bittrex`='true' WHERE `cointag`='"+Currency+"'";
-                    console.log(updateuery);
-                    //request data van mysql
+                    var query = "UPDATE `bigCryptoData`.`coinnamen` SET `bittrex`='true' WHERE `cointag`='"+Currency+"'";
                     MYSQLConnection.query(query, function (err, result) {
                         if (err) {
                             console.error(ConsoleColor.error()+"Probleem bij opvragen coin tag uit het database.");
                         } else {
-                            console.log(result[0].total);
-                            //run switch
-                            switch(result[0].total){
-                                case 1:
-                                    //var updateuery = "UPDATE `bigCryptoData`.`coinnamen` SET `bittrex`='true' WHERE `cointag`='"+Currency+"'";
-                                    //console.log(updateuery);
-                                    MYSQLConnection.query(updateuery, function (err, result) {
-                                        if (err) {
-                                            console.error(ConsoleColor.error()+"Bij coinnamen table kan kan de coin status niet worden geupdate.");
-                                        } else {
-                                            console.log(ConsoleColor.log()+"Er is data in het database gezet.");
-                                        }
-                                    });
-                                    
-                                    break
-                                default: 
-                                break          
-                            }
+                            console.log(result[0].Rows matched);
+                            console.log(ConsoleColor.log()+"Er is data in het database gezet.");
+                            console.log(result);
+                            
                         }
                     });
                     
@@ -87,7 +68,7 @@ function callback(error, response, body) {
                     i++;
                 };
                 
-                //callback();
+                callback();
             },
             function(callback) {
                 MYSQLDISCONNECT();
