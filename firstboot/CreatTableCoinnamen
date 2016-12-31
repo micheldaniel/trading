@@ -1,0 +1,10 @@
+CREATE TABLE `bigCryptoData`.`coinnamen` (
+  `coinID` INT NOT NULL AUTO_INCREMENT,
+  `cointag` VARCHAR(45) NULL,
+  `coinnaam` VARCHAR(45) NULL,
+  `rank` VARCHAR(45) NULL,
+  `updatedatum` DATE NULL,
+  `bittrex` VARCHAR(45) NULL DEFAULT 'false',
+  `poloniex` VARCHAR(45) NULL DEFAULT 'false',
+  `kunstmatigeintelligentie` VARCHAR(45) NULL DEFAULT 'false',
+  PRIMARY KEY (`coinID`));

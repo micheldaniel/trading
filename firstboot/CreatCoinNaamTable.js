@@ -4,7 +4,7 @@ var fs = require('fs');
 var mysql = require('mysql');
 
 //load require
-var ConsoleColor = require('./ConsoleColor.js');
+var ConsoleColor = require('../ConsoleColor.js');
 
 //config
 var config = JSON.parse(fs.readFileSync("./config.json"));
@@ -30,7 +30,7 @@ function callback(error, response, body) {
     if (!error && response.statusCode == 200) {
         
         //creat memory
-        var coinTagsMemory = [];
+        var coinTagsMemory = {};
         
         //json.parse
         var result = JSON.parse(body);
@@ -44,12 +44,23 @@ function callback(error, response, body) {
             }
         });
         
+        //creatTableQuery
+        var tableQuery = fs.readFileSync("./firstboot/CreatTableCoinnamen", 'utf8');
+        console.log(tableQuery);
+        
+        MYSQLConnection.query(tableQuery, function (err, result) {
+            if (err) {
+                console.log(ConsoleColor.error()+err);
+            } else if(result){
+                console.log(ConsoleColor.log()+"Table creat.");
+            }
+        });
+        
         //for loop
         for (i = 0; i < result.length; i++) {
             
-            //coinTag
-            var coinTag = result[i].symbol;
-            coinTagsMemory.push(coinTag);
+            //coinTagsMemory
+            coinTagsMemory[result[i].symbol] = 'true';
             
             //intersect data
             var insertQuery = "INSERT INTO `coinnamen` (`cointag`, `coinnaam`, `rank`, `updatedatum`)"+
@@ -66,7 +77,7 @@ function callback(error, response, body) {
         }
         
         //write file
-        fs.writeFileSync('./files/coinTags.json', JSON.stringify(coinTagsMemory));
+        fs.writeFileSync('./files/coinTags', JSON.stringify(coinTagsMemory));
 
         //close mysql connecion
         MYSQLConnection.end(function(err){
