@@ -12,10 +12,10 @@ var config = JSON.parse(fs.readFileSync("./config.json"));
 
 //connection
 var MYSQLConnection = mysql.createConnection({
-  host     : config.mysql.host,
-  user     : config.mysql.user,
-  password : config.mysql.password,
-  database : config.mysql.DBName
+    host     : config.mysql.host,
+    user     : config.mysql.user,
+    password : config.mysql.password,
+    database : config.mysql.DBName
 });
 
 //options
@@ -57,7 +57,7 @@ function callback(error, response, body) {
                         if (err) {
                             console.error(ConsoleColor.error()+"Probleem bij opvragen coin tag uit het database.");
                         } else {
-                            console.log(result[0].Rows matched);
+                            //console.log(result[0].Rows matched);
                             console.log(ConsoleColor.log()+"Er is data in het database gezet.");
                             console.log(result);
                             
@@ -75,9 +75,7 @@ function callback(error, response, body) {
             }
         ]);
         
-        
         //connectie met mysql sluiten
-        //MYSQLDISCONNECT();
         //MYSQLDISCONNECT
         function MYSQLDISCONNECT (){
             MYSQLConnection.end(function(err){
@@ -90,5 +88,6 @@ function callback(error, response, body) {
         };
     }
 }
+
 request(options, callback);
 //UPDATE  bigcryptodata.coinnamen SET bittrex='true' WHERE cointag='LTC';
