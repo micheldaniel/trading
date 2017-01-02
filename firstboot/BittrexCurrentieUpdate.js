@@ -47,26 +47,42 @@ function callback(error, response, body) {
             },
             function(callback) {
                 var marktData = JSON.parse(body).result;
+                var memoryCoinTagDB = [];
                 
                 var i = 0;
                 while (marktData[i]) {
                     
                     var Currency = marktData[i].Currency;
-                    var query = "UPDATE `bigCryptoData`.`coinnamen` SET `bittrex`='true' WHERE `cointag`='"+Currency+"'";
-                    MYSQLConnection.query(query, function (err, result) {
-                        if (err) {
-                            console.error(ConsoleColor.error()+"Probleem bij opvragen coin tag uit het database.");
-                        } else {
-                            //console.log(result[0].Rows matched);
-                            console.log(ConsoleColor.log()+"Er is data in het database gezet.");
-                            console.log(result);
-                            
-                        }
-                    });
+                    memoryCoinTagDB.push(Currency);
+                    
+                    //kijk of de markt actieve is
+                    if(marktData[i].IsActive == "false"){
+                        var query = "UPDATE `bigCryptoData`.`coinnamen` SET `bittrex`='false' WHERE `cointag`='"+Currency+"'";
+                        MYSQLConnection.query(query, function (err, result) {
+                            if (err) {
+                                console.error(ConsoleColor.error()+"Probleem bij opvragen coin tag uit het database.");
+                            } else {
+                                console.log(ConsoleColor.log()+"Er is data in het database gezet.");
+
+                            }
+                        });
+                    } else {
+                        var query = "UPDATE `bigCryptoData`.`coinnamen` SET `bittrex`='true' WHERE `cointag`='"+Currency+"'";
+                        MYSQLConnection.query(query, function (err, result) {
+                            if (err) {
+                                console.error(ConsoleColor.error()+"Probleem bij opvragen coin tag uit het database.");
+                            } else {
+                                console.log(ConsoleColor.log()+"Er is data in het database gezet.");
+                            }
+                        });
+                    }
                     
                     //count +1
                     i++;
                 };
+                
+                //sla coinTagDB op
+                fs.writeFile("./files/bittrexCoinTags", JSON.stringify(memoryCoinTagDB));
                 
                 callback();
             },
