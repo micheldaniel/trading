@@ -53,7 +53,6 @@ function callback(error, response, body) {
                 while (marktData[i]) {
                     
                     var Currency = marktData[i].Currency;
-                    memoryCoinTagDB.push(Currency);
                     
                     //kijk of de markt actieve is
                     if(marktData[i].IsActive == "false"){
@@ -67,6 +66,7 @@ function callback(error, response, body) {
                             }
                         });
                     } else {
+                        memoryCoinTagDB.push(Currency);
                         var query = "UPDATE `bigCryptoData`.`coinnamen` SET `bittrex`='true' WHERE `cointag`='"+Currency+"'";
                         MYSQLConnection.query(query, function (err, result) {
                             if (err) {
