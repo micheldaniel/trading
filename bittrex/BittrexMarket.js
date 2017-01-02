@@ -4,7 +4,7 @@ var fs = require('fs');
 var mysql = require('mysql');
 
 //load require
-var ConsoleColor = require('./ConsoleColor.js');
+var ConsoleColor = require('../ConsoleColor.js');
 
 //config
 var config = JSON.parse(fs.readFileSync("./config.json"));
@@ -30,42 +30,76 @@ function callback(error, response,body) {
     if (error) {
         console.error(ConsoleColor.error()+"Probleem bij opvragen markt data van bittrex.");
     } else {
+        
+        var coinTagMemoryDB = {};
+        var totalMemoryDB= {};
+        
+        //MarktData
         var marktData = JSON.parse(body).result;
-
-        //connectie met mysql
-        MYSQLConnection.connect(function(err){
-            if(err){
-                console.error(ConsoleColor.error()+err);
-            } else {
-                console.log(ConsoleColor.log()+"Connectie met mysql.");
-            }
-        });        
         
         //for loop
-        for (i = 0; i < marktData.length; i++) {
+        for (i = 0; i < marktData.length; i++) { 
             
-            //varaialbe
-            var coinTags = marktData[i].Market;
+            var tradeMarket = marktData[i].MarketName;
             
-            //intersect data
-            MYSQLConnection.query('DELETE FROM posts WHERE title = "wrong"', function (err, result) {
-                if (err) {
-                    console.error(ConsoleColor.error()+"Kan geen data in het databse zetten.");
-                } else {
-                    console.log(ConsoleColor.log()+"Bittrex market data is opgeslagen van coin "+coinTags+'.');
-                }
-            });
+            //if loop
+            if(tradeMarket.substring(0,4) == "BTC-"){
+                
+                //get cointags
+                var coinTag = tradeMarket.substring(4);
+                coinTagMemoryDB[coinTag] = 'true';
+            }
         }
         
-        //close mysql connecion
-        MYSQLConnection.end(function(err){
-            if(err){
-                console.error(ConsoleColor.error()+"Kan mysql connentie niet opsluiten..");
-            } else {
-                console.log(ConsoleColor.log()+"Mysql connectie is afgesloten.");
-            };
-        });
+        //loop om alle data om te zetten naar makkelijker sorteer moment
+        for (i = 0; i < marktData.length; i++) { 
+            
+            //trade market
+            var tradeMarket = marktData[i].MarketName;
+            
+            //if loop
+            if(tradeMarket.substring(0,4) == "BTC-"){
+                
+                //get cointags
+                var coinTag = tradeMarket.substring(4);
+                
+                //get alle data
+                var data = JSON.stringify({
+                    'High': marktData[i].High,
+                    'Low': marktData[i].Low,
+                    'Volume': marktData[i].Volume,
+                    'Bid': marktData[i].Bid,
+                    'ask': marktData[i].Ask,
+                    'OpenBuyOrders': marktData[i].OpenBuyOrders,
+                    'OpenSellOrders': marktData[i].OpenSellOrders
+                });
+                
+                totalMemoryDB[coinTag] = data;
+            }
+        }
+        
+        console.log(totalMemoryDB);
+        fs.writeFile("./files/bittrexCoinMarketData",JSON.stringify(totalMemoryDB));
     }
 }
- 
+
+//reuqest
 request(options, callback);
+
+
+
+/*
+{ MarketName: 'BTC-MTR',
+    High: 0.00000117,
+    Low: 0.00000117,
+    Volume: 4270,
+    Last: 0.00000117,
+    BaseVolume: 0.0049959,
+    TimeStamp: '2016-12-31T00:02:37.227',
+    Bid: 0.00000113,
+    Ask: 0.00000119,
+    OpenBuyOrders: 69,
+    OpenSellOrders: 701,
+    PrevDay: 0.00000117,
+    Created: '2015-03-07T19:20:50.303' },
+*/
